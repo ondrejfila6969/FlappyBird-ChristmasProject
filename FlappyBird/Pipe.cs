@@ -53,25 +53,32 @@ namespace FlappyBird
         {
             foreach (var topPipe in _topPipes)
             {
-                DrawStripedPipe(spriteBatch, pixelTexture, topPipe);
+                DrawCandyCaneStripedPipe(spriteBatch, pixelTexture, topPipe);
             }
 
             foreach (var bottomPipe in _bottomPipes)
             {
-                DrawStripedPipe(spriteBatch, pixelTexture, bottomPipe);
+                DrawCandyCaneStripedPipe(spriteBatch, pixelTexture, bottomPipe);
             }
         }
 
-        private void DrawStripedPipe(SpriteBatch spriteBatch, Texture2D pixelTexture, Rectangle pipe)
+        private void DrawCandyCaneStripedPipe(SpriteBatch spriteBatch, Texture2D pixelTexture, Rectangle pipe)
         {
-            int stripeHeight = 20;
+            int stripeWidth = 10;
             int totalHeight = pipe.Height;
+            int totalWidth = pipe.Width;
 
-            for (int y = pipe.Y; y < pipe.Y + totalHeight; y += stripeHeight)
+            for (int y = 0; y < totalHeight; y++)
             {
-                int currentHeight = Math.Min(stripeHeight, pipe.Y + totalHeight - y);
-                bool isRed = ((y / stripeHeight) % 2 == 0);
-                spriteBatch.Draw(pixelTexture, new Rectangle(pipe.X, y, pipe.Width, currentHeight), isRed ? Color.Red : Color.White);
+                for (int x = 0; x < totalWidth; x++)
+                {
+                    bool isRed = ((x + y) / stripeWidth) % 2 == 0;
+                    spriteBatch.Draw(
+                        pixelTexture,
+                        new Rectangle(pipe.X + x, pipe.Y + y, 1, 1),
+                        isRed ? Color.Red : Color.White
+                    );
+                }
             }
         }
     }
