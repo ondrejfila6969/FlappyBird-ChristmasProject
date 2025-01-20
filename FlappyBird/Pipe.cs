@@ -62,7 +62,7 @@ namespace FlappyBird
             }
         }
 
-        private void DrawCandyCaneStripedPipe(SpriteBatch spriteBatch, Texture2D pixelTexture, Rectangle pipe)
+        private static void DrawCandyCaneStripedPipe(SpriteBatch spriteBatch, Texture2D pixelTexture, Rectangle pipe)
         {
             int stripeWidth = 10;
             int totalHeight = pipe.Height;

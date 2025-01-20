@@ -13,6 +13,8 @@ namespace FlappyBird
         private SpriteBatch _spriteBatch;
         private Texture2D _birdTexture;
         private Texture2D _backgroundTexture;
+        private Texture2D _secondBackgroundTexture;
+        private Texture2D _thirdBackgroundTexture;
         private Texture2D _pixelTexture;
         private SpriteFont _scoreFont;
         private Vector2 _birdPosition;
@@ -20,8 +22,8 @@ namespace FlappyBird
         private List<Rectangle> _topPipes;
         private List<Rectangle> _bottomPipes;
         private float _pipeSpawnTimer;
-        private const float PipeSpawnInterval = 1500;
-        private const float Gravity = 0.5f;
+        private float _pipeSpawnInterval = 1500;
+        private float Gravity = 0.5f;
         private const float FlapStrength = -10f;
         private int _score;
         private int _highScore;
@@ -55,6 +57,8 @@ namespace FlappyBird
             _pipeManager = new Pipe(_topPipes, _bottomPipes, _graphics);
 
             _menuManager = new MenuManager(_graphics);
+
+            _backgroundTexture = Content.Load<Texture2D>("background");
 
             base.Initialize();
         }
@@ -143,7 +147,7 @@ namespace FlappyBird
             }
 
             _pipeSpawnTimer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-            if (_pipeSpawnTimer >= PipeSpawnInterval)
+            if (_pipeSpawnTimer >= _pipeSpawnInterval)
             {
                 _pipeSpawnTimer = 0;
                 _pipeManager.GeneratePipes();
@@ -151,12 +155,36 @@ namespace FlappyBird
 
             _pipeManager.UpdatePipes(ref _score);
 
+            AdjustDifficulty();
+
+            if (_score >= 5 && _score < 10)
+            {
+                _secondBackgroundTexture = Content.Load<Texture2D>("secondBackground");
+                _backgroundTexture = _secondBackgroundTexture;
+            } else if(_score >= 10)
+            {
+                _thirdBackgroundTexture = Content.Load<Texture2D>("thirdBackground");
+                _backgroundTexture = _thirdBackgroundTexture;
+            }
+            else
+            {
+                _backgroundTexture = Content.Load<Texture2D>("background");
+            }
+
             if (CheckCollision())
             {
                 _gameOver = true;
             }
 
             base.Update(gameTime);
+        }
+
+        private void AdjustDifficulty()
+        {
+            _pipeSpawnInterval = Math.Max(1000, 1500 - (_score / 5));
+
+            float difficultyFactor = Math.Min(1.5f, _score / 100f);
+            Gravity = 0.5f + difficultyFactor;
         }
 
         protected override void Draw(GameTime gameTime)
