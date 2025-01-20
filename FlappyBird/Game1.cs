@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Audio;
 using System;
 using System.Collections.Generic;
 
@@ -33,6 +33,8 @@ namespace FlappyBird
         private SoundEffectInstance _backgroundMusicInstance;
         private bool _musicStarted = false;
 
+        private MenuManager _menuManager;
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -51,6 +53,8 @@ namespace FlappyBird
             _score = 0;
             _gameOver = false;
             _pipeManager = new Pipe(_topPipes, _bottomPipes, _graphics);
+
+            _menuManager = new MenuManager(_graphics);
 
             base.Initialize();
         }
@@ -71,9 +75,12 @@ namespace FlappyBird
             {
                 _backgroundMusicInstance = _backgroundMusic.CreateInstance();
                 _backgroundMusicInstance.IsLooped = true;
+                _backgroundMusicInstance.Volume = _menuManager.MusicVolume;
                 _backgroundMusicInstance.Play();
                 _musicStarted = true;
             }
+
+            _menuManager.LoadContent(Content, _pixelTexture, _scoreFont, _backgroundMusicInstance, Content.Load<Texture2D>("snowflake"));
         }
 
         private bool CheckCollision()
@@ -97,8 +104,17 @@ namespace FlappyBird
 
         protected override void Update(GameTime gameTime)
         {
+            if (_menuManager.IsMenuActive)
+            {
+                _menuManager.Update();
+                return;
+            }
+
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+            {
+                _menuManager.ToggleMenu();
+                return;
+            }
 
             if (_gameOver)
             {
@@ -149,24 +165,40 @@ namespace FlappyBird
 
             _spriteBatch.Begin();
 
-            _spriteBatch.Draw(_backgroundTexture, new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight), Color.White);
-
-            _pipeManager.DrawPipes(_spriteBatch, _pixelTexture);
-
-            _spriteBatch.Draw(_birdTexture, new Rectangle((int)_birdPosition.X, (int)_birdPosition.Y, BirdWidth, BirdHeight), Color.White);
-
-            _spriteBatch.DrawString(_scoreFont, "Score " + _score, new Vector2(10, 10), Color.Green);
-
-            string highScoreText = "HighScore " + _highScore;
-            Vector2 highScoreSize = _scoreFont.MeasureString(highScoreText);
-            _spriteBatch.DrawString(_scoreFont, highScoreText, new Vector2(_graphics.PreferredBackBufferWidth - highScoreSize.X - 10, 10), Color.Blue);
-
-            if (_gameOver)
+            if (_menuManager.IsMenuActive)
             {
-                string gameOverText = "You lost press Space to restart";
-                Vector2 size = _scoreFont.MeasureString(gameOverText);
-                Vector2 position = new Vector2((_graphics.PreferredBackBufferWidth - size.X) / 2, (_graphics.PreferredBackBufferHeight - size.Y) / 2);
-                _spriteBatch.DrawString(_scoreFont, gameOverText, position, Color.OrangeRed);
+                _spriteBatch.Draw(_backgroundTexture, new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight), Color.White);
+
+                _pipeManager.DrawPipes(_spriteBatch, _pixelTexture);
+                _spriteBatch.Draw(_birdTexture, new Rectangle((int)_birdPosition.X, (int)_birdPosition.Y, BirdWidth, BirdHeight), Color.White);
+
+                _menuManager.DrawOverlay(_spriteBatch);
+
+                _spriteBatch.DrawString(_scoreFont, "Score " + _score, new Vector2(10, 10), Color.Green);
+                string highScoreText = "HighScore " + _highScore;
+                Vector2 highScoreSize = _scoreFont.MeasureString(highScoreText);
+                _spriteBatch.DrawString(_scoreFont, highScoreText, new Vector2(_graphics.PreferredBackBufferWidth - highScoreSize.X - 10, 10), Color.Blue);
+
+                _menuManager.Draw(_spriteBatch);
+            }
+            else
+            {
+                _spriteBatch.Draw(_backgroundTexture, new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight), Color.White);
+                _pipeManager.DrawPipes(_spriteBatch, _pixelTexture);
+                _spriteBatch.Draw(_birdTexture, new Rectangle((int)_birdPosition.X, (int)_birdPosition.Y, BirdWidth, BirdHeight), Color.White);
+                _spriteBatch.DrawString(_scoreFont, "Score " + _score, new Vector2(10, 10), Color.Green);
+
+                string highScoreText = "HighScore " + _highScore;
+                Vector2 highScoreSize = _scoreFont.MeasureString(highScoreText);
+                _spriteBatch.DrawString(_scoreFont, highScoreText, new Vector2(_graphics.PreferredBackBufferWidth - highScoreSize.X - 10, 10), Color.Blue);
+
+                if (_gameOver)
+                {
+                    string gameOverText = "You lost press SPACE to restart";
+                    Vector2 size = _scoreFont.MeasureString(gameOverText);
+                    Vector2 position = new Vector2((_graphics.PreferredBackBufferWidth - size.X) / 2, (_graphics.PreferredBackBufferHeight - size.Y) / 2);
+                    _spriteBatch.DrawString(_scoreFont, gameOverText, position, Color.OrangeRed);
+                }
             }
 
             _spriteBatch.End();
