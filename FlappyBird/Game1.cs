@@ -28,6 +28,7 @@ namespace FlappyBird
         private int _score;
         private int _highScore;
         private bool _gameOver;
+        private bool _isFirstRun = true;
         private const int BirdWidth = 50;
         private const int BirdHeight = 50;
         private Pipe _pipeManager;
@@ -67,7 +68,6 @@ namespace FlappyBird
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _birdTexture = Content.Load<Texture2D>("bird");
-            _backgroundTexture = Content.Load<Texture2D>("background");
             _scoreFont = Content.Load<SpriteFont>("gameFont");
 
             _pixelTexture = new Texture2D(GraphicsDevice, 1, 1);
@@ -108,6 +108,15 @@ namespace FlappyBird
 
         protected override void Update(GameTime gameTime)
         {
+            if (_isFirstRun)
+            {
+                if (Keyboard.GetState().IsKeyDown(Keys.Enter))
+                {
+                    _isFirstRun = false;
+                }
+                return;
+            }
+
             if (_menuManager.IsMenuActive)
             {
                 _menuManager.Update();
@@ -157,11 +166,12 @@ namespace FlappyBird
 
             AdjustDifficulty();
 
-            if (_score >= 5 && _score < 10)
+            if ((_score / 5) % 3 == 1)
             {
                 _secondBackgroundTexture = Content.Load<Texture2D>("secondBackground");
                 _backgroundTexture = _secondBackgroundTexture;
-            } else if(_score >= 10)
+            }
+            else if ((_score / 5) % 3 == 2)
             {
                 _thirdBackgroundTexture = Content.Load<Texture2D>("thirdBackground");
                 _backgroundTexture = _thirdBackgroundTexture;
@@ -193,20 +203,19 @@ namespace FlappyBird
 
             _spriteBatch.Begin();
 
-            if (_menuManager.IsMenuActive)
+            if (_isFirstRun)
             {
+                _backgroundTexture = Content.Load<Texture2D>("intro");
                 _spriteBatch.Draw(_backgroundTexture, new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight), Color.White);
 
-                _pipeManager.DrawPipes(_spriteBatch, _pixelTexture);
-                _spriteBatch.Draw(_birdTexture, new Rectangle((int)_birdPosition.X, (int)_birdPosition.Y, BirdWidth, BirdHeight), Color.White);
-
-                _menuManager.DrawOverlay(_spriteBatch);
-
-                _spriteBatch.DrawString(_scoreFont, "Score " + _score, new Vector2(10, 10), Color.Green);
-                string highScoreText = "HighScore " + _highScore;
-                Vector2 highScoreSize = _scoreFont.MeasureString(highScoreText);
-                _spriteBatch.DrawString(_scoreFont, highScoreText, new Vector2(_graphics.PreferredBackBufferWidth - highScoreSize.X - 10, 10), Color.Blue);
-
+                string welcomeText = "Press ENTER to Start";
+                Vector2 size = _scoreFont.MeasureString(welcomeText);
+                Vector2 position = new Vector2((_graphics.PreferredBackBufferWidth - size.X) / 2, (_graphics.PreferredBackBufferHeight - size.Y + 400) / 2);
+                _spriteBatch.DrawString(_scoreFont, welcomeText, position, Color.Black);
+            }
+            else if (_menuManager.IsMenuActive)
+            {
+                _spriteBatch.Draw(_backgroundTexture, new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight), Color.White);
                 _menuManager.Draw(_spriteBatch);
             }
             else
@@ -214,6 +223,7 @@ namespace FlappyBird
                 _spriteBatch.Draw(_backgroundTexture, new Rectangle(0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight), Color.White);
                 _pipeManager.DrawPipes(_spriteBatch, _pixelTexture);
                 _spriteBatch.Draw(_birdTexture, new Rectangle((int)_birdPosition.X, (int)_birdPosition.Y, BirdWidth, BirdHeight), Color.White);
+
                 _spriteBatch.DrawString(_scoreFont, "Score " + _score, new Vector2(10, 10), Color.Green);
 
                 string highScoreText = "HighScore " + _highScore;
@@ -222,10 +232,10 @@ namespace FlappyBird
 
                 if (_gameOver)
                 {
-                    string gameOverText = "You lost press SPACE to restart";
+                    string gameOverText = "You lost Press SPACE to restart";
                     Vector2 size = _scoreFont.MeasureString(gameOverText);
                     Vector2 position = new Vector2((_graphics.PreferredBackBufferWidth - size.X) / 2, (_graphics.PreferredBackBufferHeight - size.Y) / 2);
-                    _spriteBatch.DrawString(_scoreFont, gameOverText, position, Color.OrangeRed);
+                    _spriteBatch.DrawString(_scoreFont, gameOverText, position, Color.Red);
                 }
             }
 
